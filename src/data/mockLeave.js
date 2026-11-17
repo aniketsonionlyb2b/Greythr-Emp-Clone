@@ -1,0 +1,53 @@
+export const leaveTypes = [
+  { id: 'cl', name: 'Casual Leave', balance: 6, unit: 'days' },
+  { id: 'sl', name: 'Sick Leave', balance: 8, unit: 'days' },
+  { id: 'el', name: 'Earned Leave', balance: 12, unit: 'days' },
+  { id: 'wfh', name: 'Work From Home', balance: 4, unit: 'days' },
+]
+
+export const initialLeaveRequests = [
+  {
+    id: 'lv-1',
+    type: 'Casual Leave',
+    typeId: 'cl',
+    startDate: '2026-03-20',
+    endDate: '2026-03-20',
+    halfDay: false,
+    reason: 'Personal errand',
+    status: 'pending',
+    submittedAt: '2026-03-14',
+  },
+  {
+    id: 'lv-2',
+    type: 'Sick Leave',
+    typeId: 'sl',
+    startDate: '2026-02-10',
+    endDate: '2026-02-11',
+    halfDay: false,
+    reason: 'Fever and recovery',
+    status: 'approved',
+    submittedAt: '2026-02-09',
+  },
+  {
+    id: 'lv-3',
+    type: 'Earned Leave',
+    typeId: 'el',
+    startDate: '2026-01-02',
+    endDate: '2026-01-03',
+    halfDay: false,
+    reason: 'Family travel',
+    status: 'approved',
+    submittedAt: '2025-12-20',
+  },
+  {
+    id: 'lv-4',
+    type: 'Work From Home',
+    typeId: 'wfh',
+    startDate: '2025-12-18',
+    endDate: '2025-12-18',
+    halfDay: true,
+    reason: 'Home internet installation',
+    status: 'rejected',
+    submittedAt: '2025-12-17',
+  },
+]
