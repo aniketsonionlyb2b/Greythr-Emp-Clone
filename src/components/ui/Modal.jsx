@@ -5,21 +5,35 @@ import Button from './Button'
 export default function Modal({ open, onClose, title, children, size = 'md', footer }) {
   const titleId = useId()
   const panelRef = useRef(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     if (!open) return undefined
+
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.()
+      if (e.key === 'Escape') onCloseRef.current?.()
     }
     document.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    panelRef.current?.focus()
+
+    // Focus the dialog once when it opens — not on every parent re-render.
+    // Re-running focus (e.g. when inline onClose identities change) steals the
+    // caret from inputs/textareas while the user is typing.
+    const panel = panelRef.current
+    if (panel && !panel.contains(document.activeElement)) {
+      panel.focus()
+    }
+
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 

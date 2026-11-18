@@ -1,7 +1,7 @@
 import Card, { CardHeader } from '../../../components/ui/Card'
 import Badge from '../../../components/ui/Badge'
 import { useLeaveData } from '../LeavePage'
-import { formatDate } from '../../../lib/formatters'
+import { formatDate, toDate } from '../../../lib/formatters'
 import { statusLabel, statusVariant } from '../../../lib/status'
 
 export default function LeaveCalendar() {
@@ -12,9 +12,10 @@ export default function LeaveCalendar() {
 
   const leaveByDate = {}
   requests.forEach((r) => {
-    const start = new Date(r.startDate)
-    const end = new Date(r.endDate)
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const start = toDate(r.startDate)
+    const end = toDate(r.endDate)
+    if (!start || !end) return
+    for (let d = new Date(start.getFullYear(), start.getMonth(), start.getDate()); d <= end; d.setDate(d.getDate() + 1)) {
       if (d.getMonth() === 2 && d.getFullYear() === 2026) {
         const key = d.getDate()
         leaveByDate[key] = r

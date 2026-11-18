@@ -19,7 +19,7 @@ export default function HolidayCalendar() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="font-medium text-ink">{h.name}</p>
-              <p className="text-sm text-ink-muted">{formatDate(h.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <p className="text-sm text-ink-muted">{formatDate(h.date)}</p>
             </div>
             <Badge variant="neutral">{h.type}</Badge>
           </li>

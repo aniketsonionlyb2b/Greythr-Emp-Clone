@@ -15,33 +15,86 @@ export function formatINR(amount, exact = false) {
   return (exact ? inrExactFormatter : inrFormatter).format(Number(amount))
 }
 
-export function formatDate(dateInput, options = {}) {
-  if (!dateInput) return '—'
-  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    ...options,
-  })
+function pad2(value) {
+  return String(value).padStart(2, '0')
 }
 
+/** Parse Date or string; treat YYYY-MM-DD / dd/mm/yyyy as local calendar dates. */
+export function toDate(dateInput) {
+  if (!dateInput) return null
+  if (dateInput instanceof Date) {
+    return Number.isNaN(dateInput.getTime()) ? null : dateInput
+  }
+
+  if (typeof dateInput === 'string') {
+    const trimmed = dateInput.trim()
+    const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed)
+    if (iso) {
+      const date = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+      return Number.isNaN(date.getTime()) ? null : date
+    }
+
+    const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed)
+    if (dmy) {
+      const day = Number(dmy[1])
+      const month = Number(dmy[2])
+      const year = Number(dmy[3])
+      const date = new Date(year, month - 1, day)
+      if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+      ) {
+        return null
+      }
+      return date
+    }
+  }
+
+  const date = new Date(dateInput)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+/** Always dd/mm/yyyy */
+export function formatDate(dateInput) {
+  const date = toDate(dateInput)
+  if (!date) return '—'
+  return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`
+}
+
+/** Store / compare as YYYY-MM-DD */
+export function toISODate(dateInput) {
+  const date = toDate(dateInput)
+  if (!date) return ''
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+/** Digits → dd/mm/yyyy while typing */
+export function maskDisplayDate(raw) {
+  const digits = String(raw ?? '').replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+export function parseDisplayDate(text) {
+  return toDate(String(text ?? '').trim())
+}
+
+/** dd/mm/yyyy with local time */
 export function formatDateTime(dateInput) {
-  if (!dateInput) return '—'
-  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  const date = toDate(dateInput)
+  if (!date) return '—'
+  const time = date.toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
   })
+  return `${formatDate(date)} ${time}`
 }
 
 export function formatRelativeDay(dateInput) {
-  const date = new Date(dateInput)
+  const date = toDate(dateInput)
+  if (!date) return '—'
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const target = new Date(date)

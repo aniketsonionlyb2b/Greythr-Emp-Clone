@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Download, Eye, FolderOpen } from 'lucide-react'
 import Card, { CardHeader } from '../../components/ui/Card'
@@ -17,6 +17,10 @@ export default function DocumentsPage() {
   const rawCategory = params.get('category') || 'All'
   const category = rawCategory === 'Payslips' ? 'All' : rawCategory
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    if (rawCategory === 'Payslips') setParams({}, { replace: true })
+  }, [rawCategory, setParams])
 
   const tabs = [{ id: 'All', label: 'All' }, ...documentCategories.map((c) => ({ id: c, label: c }))]
 

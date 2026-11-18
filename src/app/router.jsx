@@ -1,5 +1,9 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
+import ProtectedRoute from '../auth/ProtectedRoute'
+import GuestRoute from '../auth/GuestRoute'
+import LogoutPage from '../auth/LogoutPage'
+import LoginPage from '../features/auth/LoginPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import EngagePage from '../features/engage/EngagePage'
 import KudosFeedbackPage from '../features/worklife/KudosFeedbackPage'
@@ -21,40 +25,50 @@ import RequestsPage from '../features/requests/RequestsPage'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <AppLayout />,
+    element: <GuestRoute />,
+    children: [{ path: '/login', element: <LoginPage /> }],
+  },
+  { path: '/logout', element: <LogoutPage /> },
+  {
+    element: <ProtectedRoute />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'engage', element: <EngagePage /> },
-      { path: 'worklife/kudos', element: <KudosFeedbackPage /> },
-      { path: 'worklife/tasks', element: <TasksPage /> },
       {
-        path: 'salary',
-        element: <SalaryPage />,
+        path: '/',
+        element: <AppLayout />,
         children: [
-          { index: true, element: <Navigate to="payslips" replace /> },
-          { path: 'payslips', element: <PayslipsView /> },
-          { path: 'loans', element: <LoansView /> },
-          { path: 'revision', element: <RevisionView /> },
+          { index: true, element: <DashboardPage /> },
+          { path: 'engage', element: <EngagePage /> },
+          { path: 'worklife/kudos', element: <KudosFeedbackPage /> },
+          { path: 'worklife/tasks', element: <TasksPage /> },
+          {
+            path: 'salary',
+            element: <SalaryPage />,
+            children: [
+              { index: true, element: <Navigate to="payslips" replace /> },
+              { path: 'payslips', element: <PayslipsView /> },
+              { path: 'loans', element: <LoansView /> },
+              { path: 'revision', element: <RevisionView /> },
+            ],
+          },
+          {
+            path: 'leave',
+            element: <LeavePage />,
+            children: [
+              { index: true, element: <Navigate to="apply" replace /> },
+              { path: 'apply', element: <ApplyLeave /> },
+              { path: 'balance', element: <LeaveBalance /> },
+              { path: 'calendar', element: <LeaveCalendar /> },
+              { path: 'holidays', element: <HolidayCalendar /> },
+            ],
+          },
+          { path: 'attendance', element: <AttendancePage /> },
+          { path: 'documents', element: <DocumentsPage /> },
+          { path: 'people', element: <PeoplePage /> },
+          { path: 'people/:employeeId', element: <EmployeeProfilePage /> },
+          { path: 'requests', element: <RequestsPage /> },
+          { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
-      {
-        path: 'leave',
-        element: <LeavePage />,
-        children: [
-          { index: true, element: <Navigate to="apply" replace /> },
-          { path: 'apply', element: <ApplyLeave /> },
-          { path: 'balance', element: <LeaveBalance /> },
-          { path: 'calendar', element: <LeaveCalendar /> },
-          { path: 'holidays', element: <HolidayCalendar /> },
-        ],
-      },
-      { path: 'attendance', element: <AttendancePage /> },
-      { path: 'documents', element: <DocumentsPage /> },
-      { path: 'people', element: <PeoplePage /> },
-      { path: 'people/:employeeId', element: <EmployeeProfilePage /> },
-      { path: 'requests', element: <RequestsPage /> },
-      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])

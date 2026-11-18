@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CalendarPlus,
@@ -18,7 +19,7 @@ import { attendanceSummary, companyHolidays } from '../../data/mockAttendance'
 import { taxDeclarationStatus } from '../../data/mockPayslips'
 import { initialTasks } from '../../data/mockTasks'
 import { initialActivities } from '../../data/mockActivities'
-import { formatDate, getGreeting } from '../../lib/formatters'
+import { formatDate, getGreeting, toDate } from '../../lib/formatters'
 import { statusLabel, statusVariant } from '../../lib/status'
 
 const quickLinks = [
@@ -30,11 +31,23 @@ const quickLinks = [
 
 export default function DashboardPage() {
   const user = getCurrentUser()
+  const [greeting] = useState(() => getGreeting())
+  const [todayLabel] = useState(() => formatDate(Date.now()))
   const pendingTask = initialTasks.find((t) => t.status !== 'completed')
-  const upcomingHolidays = companyHolidays
-    .filter((h) => new Date(h.date) >= new Date('2026-03-17'))
-    .slice(0, 3)
+  const upcomingHolidays = useMemo(() => {
+    const start = toDate('2026-03-17')
+    return companyHolidays
+      .filter((h) => {
+        const date = toDate(h.date)
+        return date && start && date >= start
+      })
+      .slice(0, 3)
+  }, [])
   const engagePreview = initialActivities.filter((a) => ['kudos', 'poll', 'post'].includes(a.type)).slice(0, 2)
+
+  if (!user) {
+    return <p className="text-sm text-ink-muted">Unable to load your workspace profile.</p>
+  }
 
   return (
     <div className="page-section">
@@ -43,20 +56,20 @@ export default function DashboardPage() {
           <div className="p-6 lg:p-8">
             <div className="mb-3 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-tangerine" aria-hidden />
-              <p className="text-sm font-semibold text-accent">{getGreeting()}</p>
+              <p className="text-sm font-semibold text-accent">{greeting}</p>
             </div>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy">
               Welcome back, {user.name.split(' ')[0]}
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted lg:text-base">
-              {formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} ·{' '}
+              {todayLabel} ·{' '}
               {user.role} at {user.department}. A calm view of what matters today — without the noise.
             </p>
           </div>
           <div className="border-t border-border bg-navy p-6 text-white lg:border-l lg:border-t-0 lg:p-8">
             <p className="text-sm text-white/70">Your workspace</p>
             <p className="mt-2 text-lg font-semibold">{user.location}</p>
-            <p className="mt-1 text-sm text-white/70">{user.id} · {user.employmentType}</p>
+            <p className="mt-1 text-sm text-white/70">{user.id} · {user.employmentType || 'Employee'}</p>
             <div className="mt-4 h-1 w-12 rounded-full bg-citrus" aria-hidden />
             <Link
               to={`/people/${user.id}`}

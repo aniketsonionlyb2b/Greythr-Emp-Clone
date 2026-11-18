@@ -1,3 +1,4 @@
+import { getAuthenticatedEmployee } from '../auth/sessionStore'
 import { CURRENT_USER_ID } from '../config/product'
 
 export const departments = [
@@ -191,7 +192,9 @@ export const mockEmployees = [
 ]
 
 export function getCurrentUser() {
-  return mockEmployees.find((e) => e.id === CURRENT_USER_ID)
+  const authenticated = getAuthenticatedEmployee()
+  if (!authenticated) return null
+  return mockEmployees.find((e) => e.id === authenticated.id) || authenticated
 }
 
 export function getEmployeeById(id) {

@@ -68,8 +68,19 @@
     @apply antialiased;
   }
 
+  /* Keep the logged-in shell from shifting when a scrollbar appears/disappears
+     (common when hovering cards/overflow regions). Login is unaffected. */
+  html.workspace-active {
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply m-0 min-h-screen bg-surface font-sans text-base text-ink;
+  }
+
+  html.workspace-active,
+  html.workspace-active body {
+    overflow-x: clip;
   }
 
   *:focus-visible {

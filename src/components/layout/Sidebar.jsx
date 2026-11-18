@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 import { PRODUCT_NAME } from '../../config/product'
@@ -20,25 +20,30 @@ function groupActive(pathname, children = []) {
 export default function Sidebar({ onNavigate }) {
   const location = useLocation()
   const user = getCurrentUser()
-  const [openGroups, setOpenGroups] = useState({})
 
-  useEffect(() => {
-    const next = {}
-    navItems.forEach((item) => {
-      if (item.children && groupActive(location.pathname, item.children)) {
-        next[item.id] = true
-      }
-    })
-    setOpenGroups((prev) => ({ ...prev, ...next }))
+  const routeGroupId = useMemo(() => {
+    const activeGroup = navItems.find(
+      (item) => item.children && groupActive(location.pathname, item.children),
+    )
+    return activeGroup?.id ?? null
   }, [location.pathname])
 
+  const [openGroupId, setOpenGroupId] = useState(routeGroupId)
+  const [pathForOpen, setPathForOpen] = useState(location.pathname)
+
+  // Keep accordion in sync when the route changes (React-approved render adjustment).
+  if (pathForOpen !== location.pathname) {
+    setPathForOpen(location.pathname)
+    setOpenGroupId(routeGroupId)
+  }
+
   const toggle = (id) => {
-    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }))
+    setOpenGroupId((prev) => (prev === id ? null : id))
   }
 
   return (
-    <div className="flex h-full flex-col bg-white text-ink">
-      <div className="border-b border-border px-5 py-5">
+    <div className="flex h-full min-h-0 flex-col bg-white text-ink">
+      <div className="shrink-0 border-b border-border px-5 py-5">
         <div className="flex items-center gap-3">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-white shadow-sm">
             P
@@ -51,7 +56,10 @@ export default function Sidebar({ onNavigate }) {
         </div>
       </div>
 
-      <nav className="scrollbar-thin flex-1 overflow-y-auto px-3 py-4" aria-label="Primary">
+      <nav
+        className="scrollbar-thin min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-gutter:stable]"
+        aria-label="Primary"
+      >
         <ul className="space-y-1">
           {navItems.map((item) => {
             if (!item.children) {
@@ -78,7 +86,7 @@ export default function Sidebar({ onNavigate }) {
               )
             }
 
-            const open = openGroups[item.id]
+            const open = openGroupId === item.id
             const active = groupActive(location.pathname, item.children)
 
             return (
@@ -87,15 +95,18 @@ export default function Sidebar({ onNavigate }) {
                   type="button"
                   onClick={() => toggle(item.id)}
                   aria-expanded={open}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                    active
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 ${
+                    open || active
                       ? 'bg-accent-soft text-accent'
                       : 'text-ink-muted hover:bg-surface hover:text-ink'
                   }`}
                 >
                   <item.icon className="h-4 w-4 shrink-0" aria-hidden />
                   <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} aria-hidden />
+                  <ChevronDown
+                    className={`h-4 w-4 transition ${open ? 'rotate-180 text-accent' : ''}`}
+                    aria-hidden
+                  />
                 </button>
                 {open && (
                   <ul className="mt-1 ml-4 space-y-0.5 border-l border-border pl-2">
@@ -132,18 +143,22 @@ export default function Sidebar({ onNavigate }) {
         </ul>
       </nav>
 
-      <div className="border-t border-border p-4">
-        <Link
-          to={`/people/${user.id}`}
-          onClick={onNavigate}
-          className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 transition hover:border-accent/30 hover:bg-accent-soft/60"
-        >
-          <Avatar name={user.name} color={user.avatarColor} size="md" />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-navy">{user.name}</p>
-            <p className="truncate text-xs text-ink-muted">{user.role}</p>
-          </div>
-        </Link>
+      <div className="shrink-0 border-t border-border p-4">
+        {user ? (
+          <Link
+            to={`/people/${user.id}`}
+            onClick={onNavigate}
+            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 transition hover:border-accent/30 hover:bg-accent-soft/60"
+          >
+            <Avatar name={user.name} color={user.avatarColor} size="md" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-navy">{user.name}</p>
+              <p className="truncate text-xs text-ink-muted">{user.role}</p>
+            </div>
+          </Link>
+        ) : (
+          <p className="px-1 text-xs text-ink-muted">Sign in to see your profile.</p>
+        )}
       </div>
     </div>
   )

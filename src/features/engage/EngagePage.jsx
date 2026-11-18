@@ -56,7 +56,15 @@ function relativeLabel(dateInput) {
 }
 
 export default function EngagePage() {
-  const user = getCurrentUser()
+  const user = getCurrentUser() || {
+    id: 'guest',
+    name: 'Guest User',
+    role: 'Employee',
+    department: '',
+    location: '',
+    email: '',
+    avatarColor: '#5548f5',
+  }
   const { toast } = useToast()
   const [activities, setActivities] = useState(initialActivities)
   const [tab, setTab] = useState('all')
@@ -282,7 +290,7 @@ export default function EngagePage() {
   ].join(' · ')
 
   const FiltersPanel = (
-    <aside className="soft-panel p-4">
+    <aside className="soft-panel max-h-[calc(100vh-7rem)] overflow-x-clip overflow-y-auto p-4 [scrollbar-gutter:stable]">
       <div className="mb-3 flex items-center gap-2">
         <Filter className="h-4 w-4 text-accent" />
         <h3 className="text-sm font-semibold text-ink">Filters</h3>
@@ -409,185 +417,190 @@ export default function EngagePage() {
         </Button>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="hidden lg:block">{FiltersPanel}</div>
+      <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
+        <div className="hidden lg:sticky lg:top-24 lg:block lg:self-start">{FiltersPanel}</div>
 
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 soft-panel px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-hidden">
+          <div className="flex shrink-0 flex-col gap-3 soft-panel bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-ink-muted">{filterSummary}</p>
-            <label className="flex items-center gap-2 text-sm text-ink">
-              <span className="text-ink-muted">Sort:</span>
-              <select
+            <div className="flex items-center gap-2 text-sm text-ink">
+              <span className="shrink-0 text-ink-muted">Sort:</span>
+              <Select
+                aria-label="Sort activities"
+                size="sm"
                 value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="h-9 rounded-lg border border-border bg-white px-2 text-sm"
-              >
-                <option value="newest">Newest first</option>
-                <option value="interacted">Most recent interacted</option>
-              </select>
-            </label>
+                onChange={setSort}
+                className="min-w-[12.5rem]"
+                options={[
+                  { value: 'newest', label: 'Newest first' },
+                  { value: 'interacted', label: 'Most recent interacted' },
+                ]}
+              />
+            </div>
           </div>
 
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon={Sparkles}
-              title="No activities match"
-              description="Try another activity type or clear group, location, and department filters."
-              action={
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setTab('all')
-                    setGroup('')
-                    setLocation('')
-                    setDepartment('')
-                  }}
-                >
-                  Reset filters
-                </Button>
-              }
-            />
-          ) : (
-            <ul className="space-y-4">
-              {filtered.map((a) => {
-                const meta = typeMeta[a.type] || typeMeta.post
-                const Icon = meta.icon
-                return (
-                  <li key={a.id}>
-                    <article className="soft-panel p-4 sm:p-5">
-                      <div className="flex items-start gap-3">
-                        <Avatar
-                          name={a.recipientName || a.authorName}
-                          color={
-                            ['kudos', 'birthday', 'anniversary', 'new_joiner'].includes(a.type)
-                              ? '#5548f5'
-                              : '#646b7a'
-                          }
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant={meta.tone}>
-                              <Icon className="h-3 w-3" /> {meta.label}
-                            </Badge>
-                            <span className="text-xs text-ink-muted">Group: {a.group}</span>
-                            <span className="text-xs text-ink-subtle">{relativeLabel(a.createdAt)}</span>
-                          </div>
-
-                          <p className="mt-2 text-sm font-medium text-ink">
-                            {a.type === 'kudos' && (
-                              <>
-                                {a.authorName} recognized {a.recipientName}
-                                {a.recognitionValue ? ` for ${a.recognitionValue}` : ''}
-                              </>
-                            )}
-                            {a.type === 'poll' && <>{a.authorName} created a poll</>}
-                            {a.type === 'post' && <>{a.authorName} shared a post</>}
-                            {a.type === 'birthday' && <>Happy Birthday, {a.recipientName}!</>}
-                            {a.type === 'anniversary' && (
-                              <>Congratulations, {a.recipientName}!</>
-                            )}
-                            {a.type === 'new_joiner' && <>{a.recipientName} just joined us!</>}
-                          </p>
-
-                          <p className="mt-2 text-sm leading-relaxed text-slate-700">{a.content}</p>
-
-                          {a.attachments?.length > 0 && (
-                            <ul className="mt-3 space-y-1">
-                              {a.attachments.map((file) => (
-                                <li key={file.name}>
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-xs text-ink hover:bg-slate-50"
-                                    onClick={() => toast(`Opening ${file.name} (demo)`, { tone: 'info' })}
-                                  >
-                                    <Paperclip className="h-3.5 w-3.5" />
-                                    {file.name}
-                                    <span className="text-ink-subtle">{file.size}</span>
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-
-                          {a.type === 'poll' && (
-                            <div className="mt-3 space-y-2">
-                              {a.anonymous && (
-                                <p className="text-xs text-ink-muted">Anonymous voting · Open for {a.durationDays} day(s)</p>
-                              )}
-                              {a.pollOptions.map((o) => {
-                                const total = a.pollOptions.reduce((s, x) => s + x.votes, 0) || 1
-                                const pct = Math.round((o.votes / total) * 100)
-                                return (
-                                  <button
-                                    key={o.id}
-                                    type="button"
-                                    disabled={!!a.userVoted}
-                                    onClick={() => vote(a.id, o.id)}
-                                    className={`relative w-full overflow-hidden rounded-xl border px-3 py-2 text-left text-sm ${
-                                      a.userVoted === o.id
-                                        ? 'border-accent bg-accent-soft'
-                                        : 'border-border hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <span
-                                      className="absolute inset-y-0 left-0 bg-accent/10"
-                                      style={{ width: `${pct}%` }}
-                                      aria-hidden
-                                    />
-                                    <span className="relative flex justify-between gap-2">
-                                      <span>{o.label}</span>
-                                      <span className="text-ink-muted">
-                                        {o.votes} · {pct}%
-                                      </span>
-                                    </span>
-                                  </button>
-                                )
-                              })}
+          <div className="min-h-0 flex-1 lg:overflow-x-clip lg:overflow-y-auto lg:pr-1 lg:[scrollbar-gutter:stable]">
+            {filtered.length === 0 ? (
+              <EmptyState
+                icon={Sparkles}
+                title="No activities match"
+                description="Try another activity type or clear group, location, and department filters."
+                action={
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setTab('all')
+                      setGroup('')
+                      setLocation('')
+                      setDepartment('')
+                    }}
+                  >
+                    Reset filters
+                  </Button>
+                }
+              />
+            ) : (
+              <ul className="space-y-4">
+                {filtered.map((a) => {
+                  const meta = typeMeta[a.type] || typeMeta.post
+                  const Icon = meta.icon
+                  return (
+                    <li key={a.id}>
+                      <article className="soft-panel p-4 sm:p-5">
+                        <div className="flex items-start gap-3">
+                          <Avatar
+                            name={a.recipientName || a.authorName}
+                            color={
+                              ['kudos', 'birthday', 'anniversary', 'new_joiner'].includes(a.type)
+                                ? '#5548f5'
+                                : '#646b7a'
+                            }
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant={meta.tone}>
+                                <Icon className="h-3 w-3" /> {meta.label}
+                              </Badge>
+                              <span className="text-xs text-ink-muted">Group: {a.group}</span>
+                              <span className="text-xs text-ink-subtle">{relativeLabel(a.createdAt)}</span>
                             </div>
-                          )}
 
-                          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                            <span className="mr-1 text-xs font-medium text-ink-muted">Reactions</span>
-                            {reactionChoices.map((r) => (
-                              <button
-                                key={r.id}
-                                type="button"
-                                aria-label={`React with ${r.label}`}
-                                onClick={() => react(a.id, r.id)}
-                                className="inline-flex items-center gap-1 rounded-full border border-border bg-slate-50 px-2.5 py-1 text-xs hover:bg-accent-soft"
-                              >
-                                <span aria-hidden>{r.emoji}</span>
-                                {(a.reactions?.[r.id] || 0) > 0 && (
-                                  <span className="text-ink-muted">{a.reactions[r.id]}</span>
+                            <p className="mt-2 text-sm font-medium text-ink">
+                              {a.type === 'kudos' && (
+                                <>
+                                  {a.authorName} recognized {a.recipientName}
+                                  {a.recognitionValue ? ` for ${a.recognitionValue}` : ''}
+                                </>
+                              )}
+                              {a.type === 'poll' && <>{a.authorName} created a poll</>}
+                              {a.type === 'post' && <>{a.authorName} shared a post</>}
+                              {a.type === 'birthday' && <>Happy Birthday, {a.recipientName}!</>}
+                              {a.type === 'anniversary' && (
+                                <>Congratulations, {a.recipientName}!</>
+                              )}
+                              {a.type === 'new_joiner' && <>{a.recipientName} just joined us!</>}
+                            </p>
+
+                            <p className="mt-2 text-sm leading-relaxed text-slate-700">{a.content}</p>
+
+                            {a.attachments?.length > 0 && (
+                              <ul className="mt-3 space-y-1">
+                                {a.attachments.map((file) => (
+                                  <li key={file.name}>
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-xs text-ink hover:bg-slate-50"
+                                      onClick={() => toast(`Opening ${file.name} (demo)`, { tone: 'info' })}
+                                    >
+                                      <Paperclip className="h-3.5 w-3.5" />
+                                      {file.name}
+                                      <span className="text-ink-subtle">{file.size}</span>
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            {a.type === 'poll' && (
+                              <div className="mt-3 space-y-2">
+                                {a.anonymous && (
+                                  <p className="text-xs text-ink-muted">Anonymous voting · Open for {a.durationDays} day(s)</p>
                                 )}
-                              </button>
-                            ))}
+                                {a.pollOptions.map((o) => {
+                                  const total = a.pollOptions.reduce((s, x) => s + x.votes, 0) || 1
+                                  const pct = Math.round((o.votes / total) * 100)
+                                  return (
+                                    <button
+                                      key={o.id}
+                                      type="button"
+                                      disabled={!!a.userVoted}
+                                      onClick={() => vote(a.id, o.id)}
+                                      className={`relative w-full overflow-hidden rounded-xl border px-3 py-2 text-left text-sm ${
+                                        a.userVoted === o.id
+                                          ? 'border-accent bg-accent-soft'
+                                          : 'border-border hover:bg-slate-50'
+                                      }`}
+                                    >
+                                      <span
+                                        className="absolute inset-y-0 left-0 bg-accent/10"
+                                        style={{ width: `${pct}%` }}
+                                        aria-hidden
+                                      />
+                                      <span className="relative flex justify-between gap-2">
+                                        <span>{o.label}</span>
+                                        <span className="text-ink-muted">
+                                          {o.votes} · {pct}%
+                                        </span>
+                                      </span>
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            )}
+
+                            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                              <span className="mr-1 text-xs font-medium text-ink-muted">Reactions</span>
+                              {reactionChoices.map((r) => (
+                                <button
+                                  key={r.id}
+                                  type="button"
+                                  aria-label={`React with ${r.label}`}
+                                  onClick={() => react(a.id, r.id)}
+                                  className="inline-flex items-center gap-1 rounded-full border border-border bg-slate-50 px-2.5 py-1 text-xs hover:bg-accent-soft"
+                                >
+                                  <span aria-hidden>{r.emoji}</span>
+                                  {(a.reactions?.[r.id] || 0) > 0 && (
+                                    <span className="text-ink-muted">{a.reactions[r.id]}</span>
+                                  )}
+                                </button>
+                              ))}
+                              {a.comments?.length > 0 && (
+                                <span className="ml-auto text-xs text-ink-muted">
+                                  {a.comments.length} comment{a.comments.length === 1 ? '' : 's'}
+                                </span>
+                              )}
+                            </div>
+
                             {a.comments?.length > 0 && (
-                              <span className="ml-auto text-xs text-ink-muted">
-                                {a.comments.length} comment{a.comments.length === 1 ? '' : 's'}
-                              </span>
+                              <ul className="mt-3 space-y-2">
+                                {a.comments.map((c) => (
+                                  <li key={c.id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                                    <span className="font-medium text-ink">{c.author}</span>
+                                    <span className="text-ink-muted"> · {c.text}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
                           </div>
-
-                          {a.comments?.length > 0 && (
-                            <ul className="mt-3 space-y-2">
-                              {a.comments.map((c) => (
-                                <li key={c.id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
-                                  <span className="font-medium text-ink">{c.author}</span>
-                                  <span className="text-ink-muted"> · {c.text}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
                         </div>
-                      </div>
-                    </article>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+                      </article>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
 

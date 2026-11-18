@@ -5,6 +5,7 @@ import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
+import DateInput from '../../components/ui/DateInput'
 import Select from '../../components/ui/Select'
 import { useToast } from '../../components/ui/Toast'
 import { initialTasks } from '../../data/mockTasks'
@@ -118,7 +119,11 @@ export default function TasksPage() {
             options={['Performance review', 'Employee information', 'Attendance follow-up', 'Custom workflow', 'Leave-related', 'Tax & compliance']}
           />
           <label className="block text-sm font-medium" htmlFor="task-due">Due date</label>
-          <input id="task-due" type="date" className="h-10 w-full rounded-xl border border-border px-3 text-sm" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
+          <DateInput
+            id="task-due"
+            value={form.dueDate}
+            onChange={(v) => setForm((f) => ({ ...f, dueDate: v }))}
+          />
         </div>
       </Modal>
     </div>

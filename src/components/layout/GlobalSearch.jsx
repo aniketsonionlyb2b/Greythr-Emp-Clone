@@ -74,7 +74,7 @@ export default function GlobalSearch({ compact = false }) {
         }}
       />
       {open && query.trim() && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-96 overflow-y-auto rounded-2xl border border-border bg-white p-2 shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-96 overflow-y-auto rounded-2xl border border-border bg-white p-1.5 shadow-[0_12px_32px_rgba(23,27,46,0.14)]">
           {!hasResults && (
             <p className="px-3 py-6 text-center text-sm text-ink-muted">No results for “{query}”.</p>
           )}
@@ -146,7 +146,7 @@ function ResultItem({ title, meta, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full flex-col rounded-xl px-3 py-2 text-left hover:bg-accent-soft"
+      className="flex w-full flex-col rounded-xl px-3 py-2 text-left transition hover:bg-surface focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/25"
     >
       <span className="text-sm font-medium text-ink">{title}</span>
       <span className="text-xs text-ink-muted">{meta}</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Card, { CardHeader } from '../../../components/ui/Card'
 import Button from '../../../components/ui/Button'
+import DateInput from '../../../components/ui/DateInput'
 import Select from '../../../components/ui/Select'
 import Badge from '../../../components/ui/Badge'
 import Modal from '../../../components/ui/Modal'
@@ -74,23 +75,21 @@ export default function ApplyLeave() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="start" className="mb-1.5 block text-sm font-medium">Start date</label>
-              <input
+              <DateInput
                 id="start"
-                type="date"
-                className={`h-10 w-full rounded-xl border px-3 text-sm ${errors.startDate ? 'border-danger' : 'border-border'}`}
                 value={form.startDate}
-                onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                error={!!errors.startDate}
+                onChange={(v) => setForm((f) => ({ ...f, startDate: v }))}
               />
               {errors.startDate && <p className="mt-1 text-xs text-danger">{errors.startDate}</p>}
             </div>
             <div>
               <label htmlFor="end" className="mb-1.5 block text-sm font-medium">End date</label>
-              <input
+              <DateInput
                 id="end"
-                type="date"
-                className={`h-10 w-full rounded-xl border px-3 text-sm ${errors.endDate ? 'border-danger' : 'border-border'}`}
                 value={form.endDate}
-                onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
+                error={!!errors.endDate}
+                onChange={(v) => setForm((f) => ({ ...f, endDate: v }))}
               />
               {errors.endDate && <p className="mt-1 text-xs text-danger">{errors.endDate}</p>}
             </div>
